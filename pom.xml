@@ -36,6 +36,19 @@
         </dependency>
 
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.48</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.manticore-projects.jsqlformatter</groupId>
+            <artifactId>jsqlparser</artifactId>
+            <version>[5.3.218,)</version>
+        </dependency>
+
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>
@@ -72,12 +85,13 @@
                 </configuration>
             </plugin>
 
-            <!-- Unit tests -->
+            <!-- Unit tests
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.2</version>
             </plugin>
+            -->
 
             <!-- Checkstyle -->
             <plugin>

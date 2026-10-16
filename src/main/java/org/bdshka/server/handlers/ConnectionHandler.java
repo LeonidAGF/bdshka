@@ -1,10 +1,10 @@
-package bdshka.server.handlers;
+package org.bdshka.server.handlers;
 
 
-import bdshka.dispatcher.Dispatcher;
-import bdshka.server.protocol.Message;
-import bdshka.server.protocol.MessageReader;
-import bdshka.server.protocol.MessageWriter;
+import org.bdshka.dispatcher.Dispatcher;
+import org.bdshka.server.protocol.Message;
+import org.bdshka.server.protocol.MessageReader;
+import org.bdshka.server.protocol.MessageWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

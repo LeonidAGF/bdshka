@@ -1,8 +1,8 @@
-package bdshka.server;
+package org.bdshka.server;
 
 
-import bdshka.dispatcher.Dispatcher;
-import bdshka.server.handlers.ConnectionHandler;
+import org.bdshka.dispatcher.Dispatcher;
+import org.bdshka.server.handlers.ConnectionHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +37,6 @@ public class Server {
             executor.submit(new ConnectionHandler(client,dispatcher));
         }
     }
-
 
     public void stop() throws IOException {
 

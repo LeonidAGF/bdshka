@@ -1,4 +1,4 @@
-package bdshka.server;
+package org.bdshka.server;
 
 public class ClientSession {
 }

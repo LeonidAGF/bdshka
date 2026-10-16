@@ -1,4 +1,4 @@
-package bdshka;
+package org.bdshka;
 
 public class Constants {
     public static final String PATH = System.getenv("PATH");

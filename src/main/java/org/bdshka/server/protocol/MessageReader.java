@@ -1,18 +1,16 @@
-package bdshka.server.protocol;
+package org.bdshka.server.protocol;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.SocketChannel;
 
-import static broker.network.Protocol.FRAME_SIZE_BYTES;
-
-
 public class MessageReader {
 
     public Message read(SocketChannel socket) throws IOException {
 
         int messageSize = readMessageSize(socket);
+
         if (messageSize < 0) {
             return null;
         }
@@ -49,21 +47,12 @@ public class MessageReader {
 
     private boolean readFully(SocketChannel socket, ByteBuffer buffer) throws IOException {
         while (buffer.hasRemaining()) {
-            int read = socket.read(buffer);
-            if (read < 0) {
+            if (socket.read(buffer) < 0) {
                 return false;
             }
         }
         return true;
     }
 
-    private String readNullableString(ByteBuffer buffer) {
-        short length = buffer.getShort();
-        if (length < 0) {
-            return null;
-        }
-        byte[] bytes = new byte[length];
-        buffer.get(bytes);
-        return new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
-    }
+
 }

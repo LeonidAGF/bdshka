@@ -1,4 +1,4 @@
-package bdshka.storage;
+package org.bdshka.storage;
 
 import java.util.List;
 

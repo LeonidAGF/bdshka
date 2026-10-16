@@ -1,9 +1,9 @@
-package bdshka;
+package org.bdshka;
 
-import bdshka.dispatcher.Dispatcher;
-import bdshka.server.Server;
+import org.bdshka.dispatcher.Dispatcher;
+import org.bdshka.server.Server;
 
-import static bdshka.Constants.PORT;
+import static org.bdshka.Constants.PORT;
 
 public class Main {
     /**

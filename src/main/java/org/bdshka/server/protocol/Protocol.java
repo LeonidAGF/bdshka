@@ -1,4 +1,4 @@
-package bdshka.server.protocol;
+package org.bdshka.server.protocol;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

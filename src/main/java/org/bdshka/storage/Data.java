@@ -1,4 +1,4 @@
-package bdshka.storage;
+package org.bdshka.storage;
 
 public interface Data {
     Object getValue(int columnIndex);

@@ -1,7 +1,7 @@
-package bdshka.dispatcher;
+package org.bdshka.dispatcher;
 
 
-import bdshka.server.protocol.Message;
+import org.bdshka.server.protocol.Message;
 
 public interface Dispatcher {
     Message dispatch(Message request);

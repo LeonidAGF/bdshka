@@ -1,4 +1,4 @@
-package org.bdshka.storage.Btree;
+package org.bdshka.storage.btree;
 
 import java.util.Comparator;
 import java.util.Objects;

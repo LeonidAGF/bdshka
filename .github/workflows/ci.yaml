@@ -1,34 +1,31 @@
-  name: Java CI
+name: Java CI
 
-  on:
-    pull_request:
-      branches:
-        - main
-        - develop
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
-    push:
-      branches:
-        - main
-        - develop
+permissions:
+  contents: read
 
-  permissions:
-    contents: read
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
 
-  jobs:
-    ci:
-      name: ci
-      runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
 
-        - name: Set up JDK 21
-          uses: actions/setup-java@v4
-          with:
-            java-version: '21'
-            distribution: 'temurin'
-            cache: maven
-
-        - name: Build and verify
-          run: mvn -B clean verify
+      - name: Checkstyle (google_checks.xml)
+        run: mvn -B checkstyle:check

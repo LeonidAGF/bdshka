@@ -7,52 +7,50 @@ import java.nio.channels.SocketChannel;
 
 public class MessageReader {
 
-    public Message read(SocketChannel socket) throws IOException {
-
-        int messageSize = readMessageSize(socket);
-
-        if (messageSize < 0) {
-            return null;
-        }
-
-        ByteBuffer messageBuffer = ByteBuffer.allocate(messageSize);
-        messageBuffer.order(ByteOrder.BIG_ENDIAN);
-
-        if (!readFully(socket, messageBuffer)) {
-            return null;
-        }
-        messageBuffer.flip();
-
-        short apiKey = messageBuffer.getShort();
-        short apiVersion = messageBuffer.getShort();
-        int correlationId = messageBuffer.getInt();
-        String clientId = readNullableString(messageBuffer);
-
-        byte[] payload = new byte[messageBuffer.remaining()];
-        messageBuffer.get(payload);
-
-        return new Message(apiKey, apiVersion, correlationId, clientId, payload);
+    /** StartupMessage: [int32 length][payload], length включает себя. */
+    public Message readStartup(SocketChannel channel) throws IOException {
+        int length = readInt32(channel);
+        if (length < 4) return null;
+        byte[] payload = readBytes(channel, length - 4);
+        if (payload == null) return null;
+        return new Message((byte) 0, payload);
     }
 
-    private int readMessageSize(SocketChannel socket) throws IOException {
-        ByteBuffer sizeBuffer = ByteBuffer.allocate(FRAME_SIZE_BYTES);
-        sizeBuffer.order(ByteOrder.BIG_ENDIAN);
-
-        if (!readFully(socket, sizeBuffer)) {
-            return -1;
-        }
-        sizeBuffer.flip();
-        return sizeBuffer.getInt();
+    /** Обычное сообщение: [byte type][int32 length][payload]. */
+    public Message readNormal(SocketChannel channel) throws IOException {
+        int type = readByte(channel);
+        if (type < 0) return null;
+        int length = readInt32(channel);
+        if (length < 4) return null;
+        byte[] payload = readBytes(channel, length - 4);
+        if (payload == null) return null;
+        return new Message((byte) type, payload);
     }
 
-    private boolean readFully(SocketChannel socket, ByteBuffer buffer) throws IOException {
+    private int readByte(SocketChannel channel) throws IOException {
+        ByteBuffer buf = ByteBuffer.allocate(1);
+        if (!readFully(channel, buf)) return -1;
+        return buf.get(0) & 0xFF;
+    }
+
+    private int readInt32(SocketChannel channel) throws IOException {
+        ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
+        if (!readFully(channel, buf)) return -1;
+        buf.flip();
+        return buf.getInt();
+    }
+
+    private byte[] readBytes(SocketChannel channel, int n) throws IOException {
+        if (n == 0) return new byte[0];
+        ByteBuffer buf = ByteBuffer.allocate(n);
+        if (!readFully(channel, buf)) return null;
+        return buf.array();
+    }
+
+    private boolean readFully(SocketChannel channel, ByteBuffer buffer) throws IOException {
         while (buffer.hasRemaining()) {
-            if (socket.read(buffer) < 0) {
-                return false;
-            }
+            if (channel.read(buffer) < 0) return false;
         }
         return true;
     }
-
-
 }

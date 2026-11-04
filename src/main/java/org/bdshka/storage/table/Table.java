@@ -1,13 +1,27 @@
 package org.bdshka.storage.table;
 
 import org.bdshka.storage.Cursor;
+import org.bdshka.storage.Record;
 import org.bdshka.storage.Schema;
 
-interface Table {
+// Таблица хранит строки на страницах, которые индексируются B-деревом.
+public interface Table {
+
     Schema getSchema();
-    Cursor scan();//проходимся просто по всему в таблице
-    Cursor lookup(Key key); //поиск по ключу
-    void insert(Record data);
+
+    // Сканирует все строки таблицы. Строки читаются страница за страницей.
+    Cursor scan();
+
+    // Находит одну строку по первичному ключу.
+    Cursor lookup(Key key);
+
+    // Возвращает физическое расположение строки или null, если строки нет.
+    RowId findRowId(Key key);
+
+    // Вставляет строку и возвращает её физическое расположение.
+    RowId insert(Record data);
+
     void update(RowId rowId, Record data);
+
     void delete(RowId rowId);
 }

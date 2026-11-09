@@ -3,7 +3,6 @@ package org.bdshka.server.protocol;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
-/** Кодирует backend-сообщения. Буферизует, отправка по flush(). */
 public final class MessageWriter {
     private final DataOutputStream out;
 
@@ -11,7 +10,6 @@ public final class MessageWriter {
         this.out = new DataOutputStream(new BufferedOutputStream(os));
     }
 
-    /** Тело сообщения: удобные методы записи примитивов протокола. */
     public static final class Body {
         private final ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
@@ -30,7 +28,6 @@ public final class MessageWriter {
         b.bos.writeTo(out);
     }
 
-    /** Один сырой байт без длины (ответ 'N' на SSLRequest). */
     public void raw(int b) throws IOException { out.writeByte(b); }
 
     public void flush() throws IOException { out.flush(); }

@@ -10,6 +10,7 @@ public interface EngineSession extends AutoCloseable {
 
     // I вне транзакции, T внутри, E транзакция сломана. Уходит в ReadyForQuery.
     char transactionStatus();
+    List<QueryResult> executeExtended(String sql, List<Object> params);
 
     @Override
     void close();

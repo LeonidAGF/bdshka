@@ -32,8 +32,6 @@ import org.slf4j.LoggerFactory;
 public final class ConnectionHandler implements Runnable {
 
     private static final Logger log = LoggerFactory.getLogger(ConnectionHandler.class);
-    private static final int SSL_REQUEST_CODE = 80877103;
-    private static final int GSS_REQUEST_CODE = 80877104;
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final int SALT_LENGTH = 4;
 
@@ -64,7 +62,10 @@ public final class ConnectionHandler implements Runnable {
 
     private void handleConnection() throws IOException {
         MessageWriter writer = new MessageWriter(socket);
-        Message startup = readStartupAfterSsl(writer);
+        Message startup = reader.readStartup(socket);
+        if (startup == null) {
+            throw new DbException(Protocol.PROTOCOL_VIOLATION, "No startup message received");
+        }
 
         StartupMessage request = StartupMessage.fromPayload(startup.getPayload());
         log.info("Startup: user={}, database={}", request.user(), request.database());
@@ -78,20 +79,6 @@ public final class ConnectionHandler implements Runnable {
         try (EngineSession engineSession = session.engineSession()) {
             commandLoop(writer, engineSession);
         }
-    }
-
-    private Message readStartupAfterSsl(MessageWriter writer) throws IOException {
-        Message startup = reader.readStartup(socket);
-        int code = firstInt32(startup);
-        if (code == SSL_REQUEST_CODE || code == GSS_REQUEST_CODE) {
-            writer.raw('N');
-            writer.flush();
-            startup = reader.readStartup(socket);
-        }
-        if (startup == null) {
-            throw new DbException(Protocol.PROTOCOL_VIOLATION, "No startup message received");
-        }
-        return startup;
     }
 
     private ClientSession authenticate(MessageWriter writer, StartupMessage request)

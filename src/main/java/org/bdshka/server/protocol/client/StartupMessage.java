@@ -24,9 +24,8 @@ public final class StartupMessage implements ClientMessage {
     public static StartupMessage fromPayload(byte[] payload) {
         ByteBuffer buffer = ByteBuffer.wrap(payload);
         int version = buffer.getInt();
-        if (version != Protocol.PROTOCOL_VERSION_3_0) {
-            throw new DbException(Protocol.PROTOCOL_VIOLATION,
-                    "Unsupported protocol version: " + version);
+        if (version != Protocol.PROTOCOL_VERSION) {
+            throw new DbException(Protocol.PROTOCOL_VIOLATION, "Unsupported protocol version: " + version);
         }
         byte[] rest = new byte[buffer.remaining()];
         buffer.get(rest);
@@ -40,8 +39,7 @@ public final class StartupMessage implements ClientMessage {
         }
         String user = params.get("user");
         if (user == null || user.isBlank()) {
-            throw new DbException(Protocol.PROTOCOL_VIOLATION,
-                    "StartupMessage must contain user");
+            throw new DbException(Protocol.PROTOCOL_VIOLATION, "StartupMessage must contain user");
         }
         return new StartupMessage(user, params.getOrDefault("database", user), params);
     }

@@ -7,7 +7,6 @@ import java.nio.channels.SocketChannel;
 
 public class MessageReader {
 
-    /** StartupMessage: [int32 length][payload], length включает себя. */
     public Message readStartup(SocketChannel channel) throws IOException {
         int length = readInt32(channel);
         if (length < 4) return null;
@@ -16,7 +15,6 @@ public class MessageReader {
         return new Message((byte) 0, payload);
     }
 
-    /** Обычное сообщение: [byte type][int32 length][payload]. */
     public Message readNormal(SocketChannel channel) throws IOException {
         int type = readByte(channel);
         if (type < 0) return null;

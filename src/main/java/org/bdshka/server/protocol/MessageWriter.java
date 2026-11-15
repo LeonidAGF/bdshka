@@ -1,6 +1,8 @@
 package org.bdshka.server.protocol;
 
 import java.io.*;
+import java.nio.channels.Channels;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 
 public final class MessageWriter {
@@ -31,4 +33,14 @@ public final class MessageWriter {
     public void raw(int b) throws IOException { out.writeByte(b); }
 
     public void flush() throws IOException { out.flush(); }
+
+    public MessageWriter(SocketChannel channel) {
+        this(Channels.newOutputStream(channel));
+    }
+
+    public void send(ServerMessage message) throws IOException {
+        Body body = body();
+        message.write(body);
+        send(message.type(), body);
+    }
 }

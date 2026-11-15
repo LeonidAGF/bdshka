@@ -1,4 +1,5 @@
 package org.bdshka.server.protocol;
 
-public class ClientMessage {
+public interface ClientMessage {
+    byte type();
 }

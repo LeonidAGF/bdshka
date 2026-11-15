@@ -1,4 +1,6 @@
 package org.bdshka.server.protocol;
 
-public class ServerMessage {
+public interface ServerMessage {
+    char type();
+    void write(MessageWriter.Body body);
 }

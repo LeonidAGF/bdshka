@@ -53,4 +53,7 @@ public final class Protocol {
     public static final int OID_FLOAT8  = 701;
     public static final int OID_VARCHAR = 1043;
     public static final int OID_TEXT    = 25;
+    
+    public static final String PROTOCOL_VIOLATION = "08P01";
+    public static final String INVALID_PASSWORD = "28P01";
 }

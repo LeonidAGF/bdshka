@@ -6,9 +6,6 @@ import lombok.Getter;
 @Builder
 @Getter
 public final class Message {
-
-    private byte massageId;
-    private int length;
-    private byte[] payload;
-
+    private final byte type;
+    private final byte[] payload;
 }

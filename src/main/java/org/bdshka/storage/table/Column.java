@@ -22,4 +22,36 @@ public final class Column {
         this.primaryKey = primaryKey;
         this.unique = unique;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public ColumnType getType() {
+        return type;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public boolean isNullable() {
+        return nullable;
+    }
+
+    public Object getDefaultValue() {
+        return defaultValue;
+    }
+
+    public int getMaxLength() {
+        return maxLength;
+    }
+
+    public boolean isPrimaryKey() {
+        return primaryKey;
+    }
+
+    public boolean isUnique() {
+        return unique;
+    }
 }

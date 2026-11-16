@@ -1,7 +1,7 @@
 package org.bdshka;
 
-import org.bdshka.dispatcher.Dispatcher;
 import org.bdshka.server.Server;
+import org.bdshka.server.auth.AuthMethod;
 
 import static org.bdshka.Constants.PORT;
 
@@ -11,8 +11,7 @@ public class Main {
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
-        Dispatcher dispatcher = null;
-        Server bk = new Server(PORT,dispatcher);
-        bk.start();
+        Server server = new Server(PORT, null, AuthMethod.parse(String.valueOf(AuthMethod.MD5)).create());
+        server.start();
     }
 }

@@ -1,34 +1,46 @@
 package org.bdshka.server.protocol;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+import java.io.*;
+import java.nio.channels.Channels;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 
+public final class MessageWriter {
+    private final DataOutputStream out;
 
-public class MessageWriter {
+    public MessageWriter(OutputStream os) {
+        this.out = new DataOutputStream(new BufferedOutputStream(os));
+    }
 
-    private static final int MESSAGE_SIZE_BYTES = 4;
-    private static final int CORRELATION_ID_BYTES = 4;
+    public static final class Body {
+        private final ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-    public void write(SocketChannel channel, Message packet) throws IOException {
-        byte[] body = packet.getPayload();
+        public Body int32(int v) { bos.write(v >>> 24); bos.write(v >>> 16); bos.write(v >>> 8); bos.write(v); return this; }
+        public Body int16(int v) { bos.write(v >>> 8); bos.write(v); return this; }
+        public Body byte1(int v) { bos.write(v); return this; }
+        public Body bytes(byte[] b) { bos.writeBytes(b); return this; }
+        public Body cstring(String s) { bos.writeBytes(s.getBytes(StandardCharsets.UTF_8)); bos.write(0); return this; }
+    }
 
-        int messageSize = CORRELATION_ID_BYTES + body.length;
+    public static Body body() { return new Body(); }
 
-        ByteBuffer buffer = ByteBuffer.allocate(MESSAGE_SIZE_BYTES + messageSize);
-        buffer.order(ByteOrder.BIG_ENDIAN);
+    public void send(char type, Body b) throws IOException {
+        out.writeByte(type);
+        out.writeInt(b.bos.size() + 4);
+        b.bos.writeTo(out);
+    }
 
-        buffer.putInt(messageSize);
-        buffer.putInt(packet.getCorrelationId());
-        buffer.put(body);
+    public void raw(int b) throws IOException { out.writeByte(b); }
 
-        buffer.flip();
-        while (buffer.hasRemaining()) {
-            int written = channel.write(buffer);
-            if (written < 0) {
-                throw new IOException("Channel closed");
-            }
-        }
+    public void flush() throws IOException { out.flush(); }
+
+    public MessageWriter(SocketChannel channel) {
+        this(Channels.newOutputStream(channel));
+    }
+
+    public void send(ServerMessage message) throws IOException {
+        Body body = body();
+        message.write(body);
+        send(message.type(), body);
     }
 }

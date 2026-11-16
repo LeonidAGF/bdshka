@@ -1,13 +1,18 @@
 package org.bdshka.storage.table;
 
 import org.bdshka.storage.Cursor;
+import org.bdshka.storage.Record;
+import org.bdshka.storage.RowCursor;
 import org.bdshka.storage.Schema;
 
-interface Table {
+public interface Table {
+
+    String name();
     Schema getSchema();
-    Cursor scan();//проходимся просто по всему в таблице
-    Cursor lookup(Key key); //поиск по ключу
-    void insert(Record data);
+    RowCursor scan();
+    Cursor lookup(Key key);
+    RowId findRowId(Key key);
+    RowId insert(Record data);
     void update(RowId rowId, Record data);
     void delete(RowId rowId);
 }

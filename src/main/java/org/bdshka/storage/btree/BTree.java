@@ -1,6 +1,10 @@
 package org.bdshka.storage.btree;
 
+import java.util.ArrayDeque;
 import java.util.Comparator;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 public final class BTree<K, V> {
@@ -30,6 +34,75 @@ public final class BTree<K, V> {
     public V get(K key) {
         BTreeNode.Entry<K, V> entry = findEntry(key);
         return entry == null ? null : entry.value;
+    }
+
+    // Обходит ключи по возрастанию, не материализуя дерево целиком.
+    public Iterator<K> keyIterator() {
+        return new EntryIterator<>(true);
+    }
+
+    // Обходит значения в порядке возрастания ключей, не материализуя дерево целиком.
+    public Iterator<V> valueIterator() {
+        return new EntryIterator<>(false);
+    }
+
+    private final class EntryIterator<T> implements Iterator<T> {
+        private final boolean keys;
+        private final Deque<Frame<K, V>> stack = new ArrayDeque<>();
+
+        EntryIterator(boolean keys) {
+            this.keys = keys;
+            descend(root);
+        }
+
+        private void descend(BTreeNode<K, V> node) {
+            while (true) {
+                stack.push(new Frame<>(node, 0));
+                if (node.isLeaf()) {
+                    return;
+                }
+                node = node.children.get(0);
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            while (!stack.isEmpty()) {
+                Frame<K, V> frame = stack.peek();
+                if (frame.index < frame.node.entries.size()) {
+                    return true;
+                }
+                stack.pop();
+            }
+            return false;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public T next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+
+            Frame<K, V> frame = stack.peek();
+            BTreeNode.Entry<K, V> entry = frame.node.entries.get(frame.index);
+            frame.index++;
+
+            if (!frame.node.isLeaf()) {
+                descend(frame.node.children.get(frame.index));
+            }
+            return keys ? (T) entry.key : (T) entry.value;
+        }
+    }
+
+    private static final class Frame<K, V> {
+        private final BTreeNode<K, V> node;
+        private int index;
+
+        Frame(BTreeNode<K, V> node, int index) {
+            this.node = node;
+            this.index = index;
+        }
     }
 
     public boolean containsKey(K key) {

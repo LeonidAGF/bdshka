@@ -29,8 +29,8 @@ class RecordImplTest {
         assertEquals(10, record.get(0));
         assertEquals("Alice", record.get(1));
         assertEquals("Alice", record.get("NAME"));
-        assertEquals(2, ((RecordImpl) record).size());
-        assertSame(schema, ((RecordImpl) record).getSchema());
+        assertEquals(2, record.size());
+        assertSame(schema, record.schema());
     }
 
     @Test

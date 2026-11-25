@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.bdshka.storage.table.Column;
 import org.bdshka.storage.table.ColumnType;
@@ -19,58 +20,64 @@ class MemoryStorageTest {
 
     private static Schema schema() {
         return new SchemaImpl(List.of(
-                new Column("users", ColumnType.INT, 0, false, null, 0, true, true),
+                new Column("id", ColumnType.INT, 0, false, null, 0, true, true),
                 new Column("name", ColumnType.VARCHAR, 1, false, null, 32, false, false)
         ));
     }
 
     @Test
-    void createsAndOpensTable() {
+    void createsAndFindsTable() {
         MemoryStorage storage = new MemoryStorage();
         Schema schema = schema();
 
-        storage.createTable(schema);
+        Table table = storage.createTable("users", schema);
 
-        assertEquals(1, storage.size());
-        assertTrue(storage.containsTable("users_table"));
-        Table table = storage.openTable("users_table");
-        assertSame(schema, table.getSchema());
+        assertEquals("users", table.name());
+        assertSame(table, storage.getTable("users"));
+        assertEquals(Optional.of(table), storage.findTable("users"));
+        assertEquals(Optional.empty(), storage.findTable("missing"));
+        assertTrue(storage.tableNames().contains("users"));
     }
 
     @Test
-    void rejectsDuplicateAndMissing() {
+    void rejectsDuplicateAndMissingTable() {
         MemoryStorage storage = new MemoryStorage();
-        Schema schema = schema();
+        storage.createTable("users", schema());
 
-        storage.createTable(schema);
-
-        assertThrows(IllegalArgumentException.class, () -> storage.createTable(schema));
-        assertThrows(IllegalArgumentException.class, () -> storage.openTable("missing"));
-        assertThrows(IllegalArgumentException.class, () -> storage.dropTable("missing"));
+        assertThrows(IllegalArgumentException.class,
+                () -> storage.createTable("users", schema()));
+        assertThrows(IllegalArgumentException.class, () -> storage.getTable("missing"));
+        assertThrows(IllegalArgumentException.class, () -> storage.dropTable("missing", false));
     }
 
     @Test
     void dropTableRemovesIt() {
         MemoryStorage storage = new MemoryStorage();
-        storage.createTable(schema());
+        storage.createTable("users", schema());
 
-        storage.dropTable("users_table");
+        storage.dropTable("users", false);
 
-        assertEquals(0, storage.size());
-        assertFalse(storage.containsTable("users_table"));
-        assertThrows(IllegalArgumentException.class, () -> storage.openTable("users_table"));
+        assertFalse(storage.tableNames().contains("users"));
+        assertThrows(IllegalArgumentException.class, () -> storage.getTable("users"));
+    }
+
+    @Test
+    void dropTableWithIfExistsDoesNotThrow() {
+        MemoryStorage storage = new MemoryStorage();
+
+        storage.dropTable("missing", true);
+
+        assertFalse(storage.tableNames().contains("missing"));
     }
 
     @Test
     void worksWithTableOperations() {
         MemoryStorage storage = new MemoryStorage();
         Schema schema = schema();
-        storage.createTable(schema);
+        Table table = storage.createTable("users", schema);
 
-        Table table = storage.openTable("users_table");
         RowId rowId = table.insert(new RecordImpl(schema, 1, "alice"));
 
-        assertEquals(1, ((org.bdshka.storage.table.TableImpl) table).size());
-        assertEquals(rowId, ((org.bdshka.storage.table.TableImpl) table).findRowId(Key.of(1)));
+        assertEquals(rowId, table.findRowId(Key.of(1)));
     }
 }

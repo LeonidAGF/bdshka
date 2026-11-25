@@ -58,6 +58,7 @@ public final class SchemaImpl implements Schema {
     }
 
     // Возвращает индексы колонок, образующих первичный ключ, в порядке схемы.
+    @Override
     public List<Integer> getPrimaryKeyIndexes() {
         List<Integer> indexes = new ArrayList<>();
         for (int i = 0; i < columns.size(); i++) {

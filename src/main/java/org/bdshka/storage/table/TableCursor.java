@@ -4,18 +4,18 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
-import org.bdshka.storage.Cursor;
 import org.bdshka.storage.Record;
+import org.bdshka.storage.RowCursor;
 
 // Лениво сканирует страницы, декодируя только одну строку за раз.
-final class TableCursor implements Cursor {
+final class TableCursor implements RowCursor {
 
     private final Iterator<Page> pages;
     private final RecordCodec codec;
 
     private Page page;
     private int slot;
-    private Record next;
+    private Entry next;
     private boolean closed;
 
     TableCursor(Iterator<Page> pages, RecordCodec codec) {
@@ -35,21 +35,23 @@ final class TableCursor implements Cursor {
     }
 
     @Override
-    public Record next() {
+    public Entry next() {
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
-        Record result = next;
+        Entry result = next;
         next = null;
         return result;
     }
 
-    private Record fetch() {
+    private Entry fetch() {
         while (true) {
             if (page != null && slot < page.slotCount()) {
+                int currentSlot = slot;
                 byte[] row = page.read(slot++);
                 if (row != null) {
-                    return codec.decode(row, 0, row.length);
+                    Record record = codec.decode(row, 0, row.length);
+                    return new Entry(new RowId(page.id(), currentSlot), record);
                 }
             } else {
                 if (!pages.hasNext()) {

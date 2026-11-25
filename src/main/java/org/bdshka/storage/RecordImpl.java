@@ -29,16 +29,19 @@ public final class RecordImpl implements Record {
         return values[schema.getColumnIndex(columnName)];
     }
 
-    public Schema getSchema() {
-        return schema;
-    }
-
+    @Override
     public int size() {
         return values.length;
     }
 
+    @Override
     public Object[] toArray() {
         return values.clone();
+    }
+
+    @Override
+    public Schema schema() {
+        return schema;
     }
 
     @Override

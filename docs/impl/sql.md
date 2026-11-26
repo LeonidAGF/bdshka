@@ -5,7 +5,7 @@
 Для работы базы данных с SQL были реализованы следующие группы классов:
 1. Движок и сессия (SqlEngine, EngineSession)
 2. Парсер  мапперы (SqlParserImpl, TypeMapperImpl, ExpressionToJavaValueMapper, ColumnValueConverter)
-3. Исполнители (CreateTableExecutor, DropTableExecutor, InsertExecutor, SelectExecutor)
+3. Исполнители (CreateTableExecutor, DropTableExecutor, InsertExecutor, SelectExecutor, ..)
 
 ## Движок и сессия
 

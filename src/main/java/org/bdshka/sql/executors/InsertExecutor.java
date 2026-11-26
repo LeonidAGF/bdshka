@@ -78,7 +78,8 @@ public final class InsertExecutor implements StatementExecutor {
             throw new DbException(SqlStatus.FEATURE_NOT_SUPPORTED, "Expected a single-row INSERT ... VALUES");
         }
         String tableName = insert.getTable().getFullyQualifiedName().toLowerCase(Locale.ROOT);
-        Table table = storage.getTable(tableName);
+        Table table = storage.findTable(tableName)
+                .orElseThrow(() -> new DbException(SqlStatus.UNDEFINED_TABLE, "Unknown table: " + tableName));
         Schema schema = table.getSchema();
         var targetColumns = insert.getColumns();
         int targetCount = targetColumns == null ? schema.getColumns().size() : targetColumns.size();

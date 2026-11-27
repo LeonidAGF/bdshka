@@ -16,6 +16,7 @@ import java.util.Set;
 import org.bdshka.storage.Cursor;
 import org.bdshka.storage.Record;
 import org.bdshka.storage.RecordImpl;
+import org.bdshka.storage.RowCursor;
 import org.bdshka.storage.Schema;
 import org.bdshka.storage.SchemaImpl;
 import org.junit.jupiter.api.Test;
@@ -51,10 +52,11 @@ class TableImplTest {
     @Test
     void insertsAndLooksUpByPrimaryKey() {
         Schema schema = schema();
-        TableImpl table = new TableImpl(schema);
+        TableImpl table = new TableImpl("test", schema);
 
         RowId rowId = table.insert(row(schema, 1, "Alice", 10.5));
 
+        assertEquals("test", table.name());
         assertNotNull(rowId);
         assertEquals(1, table.size());
         assertEquals(rowId, table.findRowId(Key.of(1)));
@@ -68,7 +70,7 @@ class TableImplTest {
 
     @Test
     void missingLookupReturnsEmptyCursor() {
-        TableImpl table = new TableImpl(schema());
+        TableImpl table = new TableImpl("test", schema());
 
         Cursor cursor = table.lookup(Key.of(42));
 
@@ -80,7 +82,7 @@ class TableImplTest {
     @Test
     void scansRowsPageByPage() {
         Schema schema = schema();
-        TableImpl table = new TableImpl(schema, 96);
+        TableImpl table = new TableImpl("test", schema, 96);
         int rowCount = 250;
 
         for (int id = 1; id <= rowCount; id++) {
@@ -90,10 +92,12 @@ class TableImplTest {
         assertTrue(table.pageCount() > 1);
 
         Set<Integer> seen = new HashSet<>();
-        Cursor cursor = table.scan();
+        RowCursor cursor = table.scan();
         try {
             while (cursor.hasNext()) {
-                Record record = cursor.next();
+                RowCursor.Entry entry = cursor.next();
+                Record record = entry.record();
+                assertNotNull(entry.rowId());
                 assertTrue(seen.add((Integer) record.get("id")));
             }
         } finally {
@@ -107,7 +111,7 @@ class TableImplTest {
     @Test
     void updatesRowInPlaceAndChangesPrimaryKey() {
         Schema schema = schema();
-        TableImpl table = new TableImpl(schema);
+        TableImpl table = new TableImpl("test", schema);
         RowId rowId = table.insert(row(schema, 1, "Alice", 10.5));
 
         table.update(rowId, row(schema, 2, "Alice Updated", 20.5));
@@ -122,7 +126,7 @@ class TableImplTest {
     @Test
     void updatesRowWhenSerializedRowGrows() {
         Schema schema = schema();
-        TableImpl table = new TableImpl(schema, 96);
+        TableImpl table = new TableImpl("test", schema, 96);
         RowId rowId = table.insert(row(schema, 1, "a", 1.0));
 
         table.update(rowId, row(schema, 1, "a-longer-name-1234567890", 2.0));
@@ -135,7 +139,7 @@ class TableImplTest {
     @Test
     void deleteRemovesRowAndFreesKey() {
         Schema schema = schema();
-        TableImpl table = new TableImpl(schema);
+        TableImpl table = new TableImpl("test", schema);
         RowId rowId = table.insert(row(schema, 1, "Alice", 10.5));
         table.insert(row(schema, 2, "Bob", 11.5));
 
@@ -153,7 +157,7 @@ class TableImplTest {
     @Test
     void rejectsDuplicateAndInvalidRows() {
         Schema schema = schema();
-        TableImpl table = new TableImpl(schema);
+        TableImpl table = new TableImpl("test", schema);
         table.insert(row(schema, 1, "Alice", 10.5));
 
         assertThrows(IllegalArgumentException.class,
@@ -172,7 +176,7 @@ class TableImplTest {
                 new Column("id", ColumnType.INT, 1, false, null, 0, true, true),
                 new Column("value", ColumnType.TEXT, 2, true, null, 0, false, false)
         ));
-        TableImpl table = new TableImpl(schema);
+        TableImpl table = new TableImpl("test", schema);
 
         RowId rowId = table.insert(new RecordImpl(schema, 7, 1, "first"));
         table.insert(new RecordImpl(schema, 7, 2, "second"));
@@ -189,6 +193,6 @@ class TableImplTest {
                 new Column("id", ColumnType.INT, 0, true, null, 0, false, false)
         ));
 
-        assertThrows(IllegalArgumentException.class, () -> new TableImpl(schema));
+        assertThrows(IllegalArgumentException.class, () -> new TableImpl("test", schema));
     }
 }

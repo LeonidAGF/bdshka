@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import org.bdshka.storage.Cursor;
 import org.bdshka.storage.Record;
+import org.bdshka.storage.RowCursor;
 import org.bdshka.storage.Schema;
 import org.bdshka.storage.btree.BTree;
 
@@ -15,6 +16,7 @@ public final class TableImpl implements Table {
 
     private static final int BTREE_DEGREE = 8;
 
+    private final String name;
     private final Schema schema;
     private final RecordCodec codec;
     private final int pageSize;
@@ -25,11 +27,16 @@ public final class TableImpl implements Table {
     private long rowCount;
     private Page lastPage;
 
-    public TableImpl(Schema schema) {
-        this(schema, DEFAULT_PAGE_SIZE);
+    public TableImpl(String name, Schema schema) {
+        this(name, schema, DEFAULT_PAGE_SIZE);
     }
 
-    public TableImpl(Schema schema, int pageSize) {
+    public TableImpl(String name, Schema schema, int pageSize) {
+        Objects.requireNonNull(name, "name");
+        if (name.isBlank()) {
+            throw new IllegalArgumentException("Table name must not be blank");
+        }
+        this.name = name;
         this.schema = Objects.requireNonNull(schema, "schema");
         if (pageSize < Page.MIN_PAGE_SIZE) {
             throw new IllegalArgumentException("Page size is too small: " + pageSize);
@@ -45,12 +52,17 @@ public final class TableImpl implements Table {
     }
 
     @Override
+    public String name() {
+        return name;
+    }
+
+    @Override
     public Schema getSchema() {
         return schema;
     }
 
     @Override
-    public Cursor scan() {
+    public RowCursor scan() {
         return new TableCursor(pages.valueIterator(), codec);
     }
 

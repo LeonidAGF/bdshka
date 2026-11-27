@@ -1,7 +1,10 @@
 package org.bdshka.storage;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.bdshka.storage.table.Table;
@@ -25,8 +28,28 @@ public final class MemoryStorage implements Storage {
     }
 
     @Override
-    public Table openTable(String name) {
-        Objects.requireNonNull(name, "name");
+    public Table createTable(String name, Schema schema) {
+        requireTableName(name);
+        Objects.requireNonNull(schema, "schema");
+
+        Table table = new TableImpl(name, schema, pageSize);
+        if (tables.putIfAbsent(name, table) != null) {
+            throw new IllegalArgumentException("Table already exists: " + name);
+        }
+        return table;
+    }
+
+    @Override
+    public void dropTable(String name, boolean ifExists) {
+        requireTableName(name);
+        if (tables.remove(name) == null && !ifExists) {
+            throw new IllegalArgumentException("Table not found: " + name);
+        }
+    }
+
+    @Override
+    public Table getTable(String name) {
+        requireTableName(name);
         Table table = tables.get(name);
         if (table == null) {
             throw new IllegalArgumentException("Table not found: " + name);
@@ -35,21 +58,14 @@ public final class MemoryStorage implements Storage {
     }
 
     @Override
-    public void createTable(Schema schema) {
-        Objects.requireNonNull(schema, "schema");
-        String name = tableName(schema);
-        if (tables.containsKey(name)) {
-            throw new IllegalArgumentException("Table already exists: " + name);
-        }
-        tables.put(name, new TableImpl(schema, pageSize));
+    public Optional<Table> findTable(String name) {
+        requireTableName(name);
+        return Optional.ofNullable(tables.get(name));
     }
 
     @Override
-    public void dropTable(String name) {
-        Objects.requireNonNull(name, "name");
-        if (tables.remove(name) == null) {
-            throw new IllegalArgumentException("Table not found: " + name);
-        }
+    public Collection<String> tableNames() {
+        return List.copyOf(tables.keySet());
     }
 
     // Количество таблиц в хранилище.
@@ -59,14 +75,14 @@ public final class MemoryStorage implements Storage {
 
     // Проверяет, есть ли таблица с таким именем.
     public boolean containsTable(String name) {
-        Objects.requireNonNull(name, "name");
+        requireTableName(name);
         return tables.containsKey(name);
     }
 
-    private static String tableName(Schema schema) {
-        if (schema.getColumns().isEmpty()) {
-            throw new IllegalArgumentException("Schema must contain at least one column");
+    private static void requireTableName(String name) {
+        Objects.requireNonNull(name, "name");
+        if (name.isBlank()) {
+            throw new IllegalArgumentException("Table name must not be blank");
         }
-        return schema.getColumns().get(0).getName() + "_table";
     }
 }
